@@ -104,8 +104,10 @@ function calcLCM() {
   }
   state.lcm = LCM(state.steps)
 
+  const MAX_DECIMAL = 100000
+
   let outLCM = state.lcm.toString()
-  if (state.lcm > 10000000) {
+  if (state.lcm > MAX_DECIMAL) {
     outLCM = state.lcm.toExponential(2)
   } else {
     outLCM = state.lcm.toLocaleString()
@@ -131,7 +133,7 @@ function calcLCM() {
 
   let repeatTimeStr = repeatSecs + 's'
   if (repeatMins > 0) {
-    repeatTimeStr = repeatDays + 'm ' + repeatTimeStr
+    repeatTimeStr = repeatMins + 'm ' + repeatTimeStr
   }
   if (repeatHours > 0) {
     repeatTimeStr = repeatHours + 'h ' + repeatTimeStr
@@ -140,7 +142,7 @@ function calcLCM() {
     repeatTimeStr = repeatDays + 'd ' + repeatTimeStr
   }
   if (repeatYears > 0) {
-    if (repeatYears > 100000) {
+    if (repeatYears > MAX_DECIMAL) {
       repeatTimeStr = repeatYears.toExponential(2) + 'y ' + repeatTimeStr
     } else {
       repeatTimeStr = repeatYears.toLocaleString() + 'y ' + repeatTimeStr
