@@ -1,6 +1,6 @@
 autowatch = 1
 inlets = 1
-outlets = 0
+outlets = 1
 
 const config = {
   outputLogs: true,
@@ -9,14 +9,15 @@ const config = {
 import { logFactory } from './utils'
 const log = logFactory(config)
 
-const INLET_FOO = 0
-const OUTLET_FOO = 0
+const INLET_MSGS = 0
+const OUTLET_MSGS = 0
 
-setinletassist(INLET_FOO, 'Receive messages')
+setinletassist(INLET_MSGS, 'Receive messages')
+setinletassist(OUTLET_MSGS, 'Send messages')
 
 const COLOR_BG = max.getcolor('live_lcd_bg')
-const COLOR_LINE = max.getcolor('live_lcd_frame')
-const COLOR_TITLE = max.getcolor('live_lcd_title')
+const COLOR_LINE = max.getcolor('live_lcd_control_fg_alt')
+const COLOR_TITLE = max.getcolor('live_lcd_control_fg')
 
 const ASPECT = 2
 sketch.default2d()
@@ -95,59 +96,109 @@ function calcLCM() {
   const start_steps = state.start_steps as number
   const step_incr = state.step_incr as number
   const notes = state.notes as number
+  const time_base = state.time_base as number
 
   state.steps = []
   for (let i = 0; i < notes; i++) {
     state.steps.push(i * step_incr + start_steps)
   }
   state.lcm = LCM(state.steps)
-  log('STEPS: ' + state.steps + ' LCM: ' + state.lcm)
+
+  let outLCM = state.lcm.toString()
+  if (state.lcm > 10000000) {
+    outLCM = state.lcm.toExponential(2)
+  } else {
+    outLCM = state.lcm.toLocaleString()
+  }
+
+  const repeatMs = state.lcm * time_base
+
+  const MS_MIN = 1000 * 60
+  const MS_HOUR = MS_MIN * 60
+  const MS_DAY = MS_HOUR * 24
+  const MS_YEAR = MS_DAY * 365
+
+  let repeatLeftover = repeatMs
+  const repeatYears = Math.floor(repeatLeftover / MS_YEAR)
+  repeatLeftover = repeatLeftover % MS_YEAR
+  const repeatDays = Math.floor(repeatLeftover / MS_DAY)
+  repeatLeftover = repeatLeftover % MS_DAY
+  const repeatHours = Math.floor(repeatLeftover / MS_HOUR)
+  repeatLeftover = repeatLeftover % MS_HOUR
+  const repeatMins = Math.floor(repeatLeftover / MS_MIN)
+  repeatLeftover = repeatLeftover % MS_MIN
+  const repeatSecs = Math.floor(repeatLeftover / 1000)
+
+  let repeatTimeStr = repeatSecs + 's'
+  if (repeatMins > 0) {
+    repeatTimeStr = repeatDays + 'm ' + repeatTimeStr
+  }
+  if (repeatHours > 0) {
+    repeatTimeStr = repeatHours + 'h ' + repeatTimeStr
+  }
+  if (repeatDays > 0) {
+    repeatTimeStr = repeatDays + 'd ' + repeatTimeStr
+  }
+  if (repeatYears > 0) {
+    if (repeatYears > 100000) {
+      repeatTimeStr = repeatYears.toExponential(2) + 'y ' + repeatTimeStr
+    } else {
+      repeatTimeStr = repeatYears.toLocaleString() + 'y ' + repeatTimeStr
+    }
+  }
+
+  outlet(OUTLET_MSGS, ['repeat_steps', '"' + outLCM + '"'])
+  outlet(OUTLET_MSGS, ['repeat_time', '"' + repeatTimeStr + '"'])
+  //log('STEPS: ' + state.steps + ' LCM: ' + state.lcm)
 }
 
 function draw() {
-  const notes = state.notes as number
   const lcm = state.lcm as number
+  const notes = state.notes as number
   const steps = state.steps as number[]
   const x_width = state.x_width as number
 
-  const xStep = 4 / x_width
-  const yStep = 2 / notes
   const XMAX = 2
   const XMIN = -2
+  const GUTTER = 0.02
+
   let xPos = XMIN
   let yPos = -1
-  const gutter = 0.03
+
+  const xStep = 4 / x_width
+  const yStep = 2 / notes
 
   //log('STATE: ' + JSON.stringify(state))
   sketch.glclearcolor(COLOR_BG)
   sketch.glclear()
 
-  sketch.glcolor(COLOR_TITLE)
   for (let row = 0; row < notes; row++) {
-    while (xPos < XMAX) {
-      sketch.glrect(
-        xPos,
-        yPos + gutter,
-        xPos + Math.max(xStep, gutter / 4.0),
-        yPos + Math.max(yStep, gutter / 4.0) - gutter
-      )
+    for (let noteCount = 0; xPos < XMAX; noteCount++) {
+      if (row === 0 || noteCount > 0) {
+        if ((noteCount * steps[row]) % lcm === 0) {
+          sketch.glcolor(COLOR_LINE)
+        } else {
+          sketch.glcolor(COLOR_TITLE)
+        }
+
+        sketch.glrect(
+          xPos,
+          yPos + GUTTER,
+          xPos + Math.max(xStep - GUTTER, GUTTER / 2.0),
+          yPos + Math.max(yStep - GUTTER, GUTTER * 3)
+        )
+      }
       xPos = xPos + xStep * steps[row]
     }
     xPos = XMIN
     yPos = yPos + yStep
   }
-
-  sketch.glcolor(COLOR_TITLE)
-  sketch.moveto(0, 0)
-  sketch.fontsize(11.5)
-  sketch.textalign('center', 'center')
-  sketch.text(lcm.toString())
 }
+
+draw()
+refresh()
 
 // NOTE: This section must appear in any .ts file that is directuly used by a
 // [js] or [jsui] object so that tsc generates valid JS for Max.
 const module = {}
 export = {}
-
-draw()
-refresh()
