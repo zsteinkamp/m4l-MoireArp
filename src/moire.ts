@@ -16,7 +16,7 @@ setinletassist(INLET_MSGS, 'Receive messages')
 setinletassist(OUTLET_MSGS, 'Send messages')
 
 const COLOR_BG = max.getcolor('live_lcd_bg')
-const COLOR_LINE = max.getcolor('live_lcd_control_fg_alt')
+const COLOR_ALT = max.getcolor('live_lcd_control_fg_alt')
 const COLOR_TITLE = max.getcolor('live_lcd_control_fg')
 
 const ASPECT = 2
@@ -170,7 +170,6 @@ function draw() {
   const xStep = 4 / x_width
   const yStep = 2 / notes
 
-  //log('STATE: ' + JSON.stringify(state))
   sketch.glclearcolor(COLOR_BG)
   sketch.glclear()
 
@@ -178,8 +177,11 @@ function draw() {
     for (let noteCount = 0; xPos < XMAX; noteCount++) {
       if (row === 0 || noteCount > 0) {
         if ((noteCount * steps[row]) % lcm === 0) {
-          sketch.glcolor(COLOR_LINE)
+          // we are on a LCM multiple step, so give a diff color to indicate
+          // where repeats happen
+          sketch.glcolor(COLOR_ALT)
         } else {
+          // regular color box
           sketch.glcolor(COLOR_TITLE)
         }
 
@@ -192,8 +194,8 @@ function draw() {
       }
       xPos = xPos + xStep * steps[row]
     }
-    xPos = XMIN
-    yPos = yPos + yStep
+    xPos = XMIN // carriage return
+    yPos = yPos + yStep // next row
   }
 }
 

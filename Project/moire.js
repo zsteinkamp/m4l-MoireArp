@@ -12,7 +12,7 @@ var OUTLET_MSGS = 0;
 setinletassist(INLET_MSGS, 'Receive messages');
 setinletassist(OUTLET_MSGS, 'Send messages');
 var COLOR_BG = max.getcolor('live_lcd_bg');
-var COLOR_LINE = max.getcolor('live_lcd_control_fg_alt');
+var COLOR_ALT = max.getcolor('live_lcd_control_fg_alt');
 var COLOR_TITLE = max.getcolor('live_lcd_control_fg');
 var ASPECT = 2;
 sketch.default2d();
@@ -144,24 +144,26 @@ function draw() {
     var yPos = -1;
     var xStep = 4 / x_width;
     var yStep = 2 / notes;
-    //log('STATE: ' + JSON.stringify(state))
     sketch.glclearcolor(COLOR_BG);
     sketch.glclear();
     for (var row = 0; row < notes; row++) {
         for (var noteCount = 0; xPos < XMAX; noteCount++) {
             if (row === 0 || noteCount > 0) {
                 if ((noteCount * steps[row]) % lcm === 0) {
-                    sketch.glcolor(COLOR_LINE);
+                    // we are on a LCM multiple step, so give a diff color to indicate
+                    // where repeats happen
+                    sketch.glcolor(COLOR_ALT);
                 }
                 else {
+                    // regular color box
                     sketch.glcolor(COLOR_TITLE);
                 }
                 sketch.glrect(xPos, yPos + GUTTER, xPos + Math.max(xStep - GUTTER, GUTTER / 2.0), yPos + Math.max(yStep - GUTTER, GUTTER * 3));
             }
             xPos = xPos + xStep * steps[row];
         }
-        xPos = XMIN;
-        yPos = yPos + yStep;
+        xPos = XMIN; // carriage return
+        yPos = yPos + yStep; // next row
     }
 }
 draw();
