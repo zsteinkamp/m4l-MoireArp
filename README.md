@@ -14,22 +14,24 @@ This creates patterns that you can discover in seas of non-repitition. The devic
 
 ## Controls
 
-* `Notes` - Controls how many different note lanes the device emits.
-* `Start Steps` - The number of steps in the base pattern.
-* `Step Incr` - How many steps to add to the base pattern for each note lane.
-* `Step Len` - The length of a step, in note values or milliseconds.
-* `Note Dur` - How long to hold each note, in terms of percentage of time until the next note.
-* `Note Incr` - For each note lane, how many semitones to increase over the previous lane.
+- `Notes` - Controls how many different note lanes the device emits.
+- `Start Steps` - The number of steps in the base pattern.
+- `Step Incr` - How many steps to add to the base pattern for each note lane.
+- `Step Len` - The length of a step, in note values or milliseconds.
+- `Note Dur` - How long to hold each note, in terms of percentage of time until the next note.
+- `Note Incr` - For each note lane, how many semitones to increase over the previous lane, or scale degrees if Scale Awareness is on.
+- `Scale Awareness` - Toggles scale awareness. Depends on the global setting in the Live Set.
 
 For instance, if MoireArp is set up with `Notes` at 3, `Start Steps` at 4, `Step Incr` at 2, `Step Len` at 1/16th note, `Note Incr` at 3 and you send it a C3, it will emit C3 quarter notes (4 times 1/16th), D#3 on dotted quarters (6 times 1/16th), and F#3 on half notes (8 times 1/16th).
 
 ## Changelog
 
-* 2024-11-25 [v1](https://github.com/zsteinkamp/m4l-MoireArp/releases/download/v1/MoireArp-v1.amxd) - Initial release.
+- 2024-12-17 [v2](https://github.com/zsteinkamp/m4l-MoireArp/releases/download/v2/MoireArp-v2.amxd) - Adds scale awareness. Thanks @callesjonell5943 from YouTube for the suggestion!
+- 2024-11-25 [v1](https://github.com/zsteinkamp/m4l-MoireArp/releases/download/v1/MoireArp-v1.amxd) - Initial release.
 
 ## TODO
 
-* ...
+- ...
 
 ## Contributing
 

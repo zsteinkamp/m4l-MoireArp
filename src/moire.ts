@@ -25,13 +25,31 @@ sketch.glloadidentity()
 
 log('reloaded')
 
-type StateVal = number | number[] | boolean
+type StateType = {
+  time_base: number
+  duration: number
+  notes: number
+  note_incr: number
+  start_steps: number
+  step_incr: number
+  steps: number[]
+  lcm: number
+  note_on: [number, number]
+  note_off: boolean
+  x_width: number
+  scale_aware: number
+  scale_root: number
+  scale_intervals: number[]
+  scale_mode: number
+  scale_name: string
+  scale_notes: number[]
+}
 
-const state: Record<string, StateVal> = {
+const state: StateType = {
   time_base: 250,
   duration: 125,
   notes: 8,
-  note_skip: 1,
+  note_incr: 1,
   start_steps: 4,
   step_incr: 1,
   steps: [],
@@ -39,42 +57,172 @@ const state: Record<string, StateVal> = {
   note_on: [60, 127],
   note_off: true,
   x_width: 100,
+  scale_aware: 0,
+  scale_root: 0,
+  scale_intervals: [],
+  scale_mode: 0,
+  scale_name: '',
+  scale_notes: [],
 }
 
-function setState(key: keyof typeof state, val: StateVal) {
-  state[key] = val
-  //log('setState ' + key + ' = ' + val)
+const watchers: Record<string, LiveAPI> = {
+  root: null,
+  int: null,
+  mode: null,
+}
+
+function updatedState() {
   calcLCM()
   draw()
   refresh()
 }
 
 function time_base(time_base: number) {
-  setState('time_base', time_base)
+  state.time_base = time_base
+  outlet(OUTLET_MSGS, 'poly', 0, 'time_base', time_base)
+  updatedState()
 }
 function duration(duration: number) {
-  setState('duration', duration)
+  state.duration = duration
+  outlet(OUTLET_MSGS, 'poly', 0, 'duration', duration)
+  updatedState()
 }
 function notes(notes: number) {
-  setState('notes', notes)
+  state.notes = notes
+  outlet(OUTLET_MSGS, 'poly', 0, 'notes', notes)
+  updatedState()
 }
-function note_skip(note_skip: number) {
-  setState('note_skip', note_skip)
+
+function updateScales() {
+  if (!watchers.root) {
+    //log('early')
+    return
+  }
+  const api = new LiveAPI(() => {}, 'live_set')
+
+  state.scale_root = api.get('root_note')
+  state.scale_intervals = api.get('scale_intervals')
+  state.scale_mode = api.get('scale_mode')
+  state.scale_name = api.get('scale_name')
+  state.scale_notes = []
+
+  let root_note = state.scale_root - 12
+  let note = root_note
+
+  while (note <= 127) {
+    for (const interval of state.scale_intervals) {
+      note = root_note + interval
+      if (note >= 0 && note <= 127) {
+        state.scale_notes.push(note)
+      }
+    }
+    root_note += 12
+    note = root_note
+  }
+  //log(
+  //  'ROOT=' +
+  //    state.scale_root +
+  //    ' INT=' +
+  //    state.scale_intervals +
+  //    ' MODE=' +
+  //    state.scale_mode +
+  //    ' NAME=' +
+  //    state.scale_name +
+  //    ' AWARE=' +
+  //    state.scale_aware +
+  //    ' NOTES=' +
+  //    state.scale_notes
+  //)
+}
+
+function init() {
+  if (!watchers.root) {
+    watchers.root = new LiveAPI(updateScales, 'live_set')
+    watchers.root.property = 'root_note'
+
+    watchers.int = new LiveAPI(updateScales, 'live_set')
+    watchers.int.property = 'scale_intervals'
+
+    watchers.mode = new LiveAPI(updateScales, 'live_set')
+    watchers.mode.property = 'scale_mode'
+  }
+  updateScales()
+}
+
+function note_incr(note_incr: number) {
+  state.note_incr = note_incr
+  updatedState()
+  updateScales()
 }
 function start_steps(start_steps: number) {
-  setState('start_steps', start_steps)
+  state.start_steps = start_steps
+  outlet(OUTLET_MSGS, 'poly', 0, 'start_steps', start_steps)
+  updatedState()
 }
 function step_incr(step_incr: number) {
-  setState('step_incr', step_incr)
+  state.step_incr = step_incr
+  outlet(OUTLET_MSGS, 'poly', 0, 'step_incr', step_incr)
+  updatedState()
 }
-function note_on(noteArr: [number, number]) {
-  setState('note_on', noteArr)
+function scale_aware(scale_aware: number) {
+  state.scale_aware = scale_aware
+  updateScales()
+  updatedState()
 }
+
+function note_on(noteNum: number, noteVel: number) {
+  state.note_on = [noteNum, noteVel]
+
+  if (!state.scale_aware || !state.scale_mode) {
+    // not scale aware
+    for (let noteIdx = 0; noteIdx < state.notes; noteIdx++) {
+      const useNote = noteNum + state.note_incr * noteIdx
+      if (useNote >= 0 && useNote <= 127) {
+        //log('NOSCALE NOTE OUT #' + (noteIdx + 1) + ' = ' + useNote)
+        outlet(OUTLET_MSGS, 'poly', noteIdx + 1, 'note_on', useNote, noteVel)
+      }
+    }
+    return
+  }
+
+  // scale aware below
+  let scaleIdx = state.scale_notes.indexOf(noteNum)
+
+  while (scaleIdx < 0 && noteNum > 0) {
+    noteNum -= 1
+    scaleIdx = state.scale_notes.indexOf(noteNum)
+  }
+
+  if (scaleIdx < 0) {
+    // hrmph didn't find the scale note, error and return
+    log(
+      'ERR: Cannot find scale note for ' +
+        noteNum +
+        ' [' +
+        state.scale_notes.join(',') +
+        ']'
+    )
+    return
+  }
+
+  for (let noteIdx = 0; noteIdx < state.notes; noteIdx++) {
+    const useNote = state.scale_notes[scaleIdx + noteIdx * state.note_incr]
+
+    if (useNote && useNote >= 0 && useNote <= 127) {
+      //log('SCALE NOTE OUT #' + (noteIdx + 1) + ' = ' + useNote)
+      outlet(OUTLET_MSGS, 'poly', noteIdx + 1, 'note_on', useNote, noteVel)
+    }
+  }
+}
+
 function note_off(noteOff: boolean) {
-  setState('note_off', noteOff)
+  state.note_off = noteOff
+  outlet(OUTLET_MSGS, 'poly', 0, 'note_off', noteOff)
+  updatedState()
 }
 function x_width(x_width: number) {
-  setState('x_width', x_width)
+  state.x_width = x_width
+  updatedState()
 }
 
 function LCM(arr: number[]) {
