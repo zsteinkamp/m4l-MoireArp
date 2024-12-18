@@ -160,6 +160,7 @@ function note_on(noteNum, noteVel) {
             ']');
         return;
     }
+    //log(JSON.stringify({ notes: state.scale_notes, incr: state.note_incr }))
     for (var noteIdx = 0; noteIdx < state.notes; noteIdx++) {
         var useNote = state.scale_notes[scaleIdx + noteIdx * state.note_incr];
         if (useNote && useNote >= 0 && useNote <= 127) {

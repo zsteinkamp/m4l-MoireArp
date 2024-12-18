@@ -205,6 +205,8 @@ function note_on(noteNum: number, noteVel: number) {
     return
   }
 
+  //log(JSON.stringify({ notes: state.scale_notes, incr: state.note_incr }))
+
   for (let noteIdx = 0; noteIdx < state.notes; noteIdx++) {
     const useNote = state.scale_notes[scaleIdx + noteIdx * state.note_incr]
 
