@@ -31,7 +31,7 @@ For instance, if MoireArp is set up with `Notes` at 3, `Start Steps` at 4, `Step
 
 ## TODO
 
-- ...
+- Add control over initial note behavior - first note only, all notes, strum (adjustable time), etc. Thanks Tobias for the suggestion!
 
 ## Contributing
 
