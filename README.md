@@ -4,7 +4,7 @@ An arpeggiator inspired by moiré patterns.
 
 ![Device Screenshot](images/device.png)
 
-This creates patterns that you can discover in seas of non-repitition. The device is all about moirés, audibly and visually.
+This creates patterns that you can discover in seas of non-repetition. The device is all about moirés, audibly and visually.
 
 [Watch a video walkthrough and example performance](https://youtu.be/vrz0NxyW4qs) of MoireArp in action.
 
