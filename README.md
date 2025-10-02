@@ -26,6 +26,7 @@ For instance, if MoireArp is set up with `Notes` at 3, `Start Steps` at 4, `Step
 
 ## Changelog
 
+- 2025-10-01 [v3](https://github.com/zsteinkamp/m4l-MoireArp/releases/download/v3/MoireArp-v3.amxd) - Checks for updates. Help popup.
 - 2024-12-17 [v2](https://github.com/zsteinkamp/m4l-MoireArp/releases/download/v2/MoireArp-v2.amxd) - Adds scale awareness. Thanks @callesjonell5943 from YouTube for the suggestion!
 - 2024-11-25 [v1](https://github.com/zsteinkamp/m4l-MoireArp/releases/download/v1/MoireArp-v1.amxd) - Initial release.
 
